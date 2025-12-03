@@ -85,12 +85,16 @@ if __name__ == '__main__':
     parser.add_argument('--bg_tile', type=int, default=400, help='Tile size for background sampler. Default: 400')
     parser.add_argument('--suffix', type=str, default=None, help='Suffix of the restored faces. Default: None')
     parser.add_argument('--save_video_fps', type=float, default=None, help='Frame rate for saving video. Default: None')
+    parser.add_argument('--first_last', action='store_true',
+            help='Extract and restore only the first and last frames of the video. Output: frame_first.png and frame_last.png')
 
     args = parser.parse_args()
 
     # ------------------------ input & output ------------------------
     w = args.fidelity_weight
     input_video = False
+    first_last_mode = False
+    first_last_frames = {}  # Store frame positions for naming
     if args.input_path.endswith(('jpg', 'jpeg', 'png', 'JPG', 'JPEG', 'PNG')): # input single img path
         input_img_list = [args.input_path]
         result_root = f'results/test_img_{w}'
@@ -98,15 +102,53 @@ if __name__ == '__main__':
         from basicsr.utils.video_util import VideoReader, VideoWriter
         input_img_list = []
         vidreader = VideoReader(args.input_path)
-        image = vidreader.get_frame()
-        while image is not None:
-            input_img_list.append(image)
-            image = vidreader.get_frame()
-        audio = vidreader.get_audio()
-        fps = vidreader.get_fps() if args.save_video_fps is None else args.save_video_fps   
         video_name = os.path.basename(args.input_path)[:-4]
-        result_root = f'results/{video_name}_{w}'
-        input_video = True
+
+        if args.first_last:
+            # Extract only first and last frames
+            first_last_mode = True
+            print(f'\n[First-Last Mode] Extracting first and last frames from video...')
+
+            # Get first frame
+            first_frame = vidreader.get_frame()
+            if first_frame is not None:
+                input_img_list.append(first_frame)
+                first_last_frames[0] = 'first'
+
+            # Skip to last frame
+            total_frames = len(vidreader)
+            print(f'  Total frames in video: {total_frames}')
+
+            # Read all remaining frames to get to the last one
+            last_frame = None
+            frame_count = 1
+            while True:
+                frame = vidreader.get_frame()
+                if frame is None:
+                    break
+                last_frame = frame
+                frame_count += 1
+
+            # Add last frame if different from first
+            if last_frame is not None and frame_count > 1:
+                input_img_list.append(last_frame)
+                first_last_frames[1] = 'last'
+                print(f'  Extracted frames: 1 (first) and {frame_count} (last)')
+            else:
+                print(f'  Video has only 1 frame, extracting as first frame only')
+
+            result_root = f'results/{video_name}_first_last'
+            input_video = False  # Don't save as video
+        else:
+            # Normal video processing - extract all frames
+            image = vidreader.get_frame()
+            while image is not None:
+                input_img_list.append(image)
+                image = vidreader.get_frame()
+            audio = vidreader.get_audio()
+            fps = vidreader.get_fps() if args.save_video_fps is None else args.save_video_fps
+            result_root = f'results/{video_name}_{w}'
+            input_video = True
         vidreader.close()
     else: # input img folder
         if args.input_path.endswith('/'):  # solve when path ends with /
@@ -179,8 +221,13 @@ if __name__ == '__main__':
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         else: # for video processing
-            basename = str(i).zfill(6)
-            img_name = f'{video_name}_{basename}' if input_video else basename
+            if first_last_mode and i in first_last_frames:
+                # Use descriptive names for first/last frames
+                basename = f'frame_{first_last_frames[i]}'
+                img_name = f'{video_name}_{basename}'
+            else:
+                basename = str(i).zfill(6)
+                img_name = f'{video_name}_{basename}' if input_video else basename
             print(f'[{i+1}/{test_img_num}] Processing: {img_name}')
             img = img_path
 

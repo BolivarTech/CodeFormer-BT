@@ -242,6 +242,20 @@ python inference_codeformer.py -w 0.7 --bg_upsampler realesrgan --face_upsample 
 python inference_codeformer.py --bg_upsampler realesrgan --face_upsample -w 1.0 --input_path inputs/video.mp4
 ```
 
+#### First and Last Frame Extraction
+
+Extract and restore only the first and last frames of a video (useful for quick previews or thumbnail generation):
+
+```bash
+# Basic extraction
+python inference_codeformer.py -w 0.7 --first_last --input_path inputs/video.mp4
+
+# With background and face upsampling
+python inference_codeformer.py -w 0.7 --first_last --bg_upsampler realesrgan --face_upsample --input_path inputs/video.mp4
+```
+
+**Output:** `frame_first.png` and `frame_last.png` in `results/<video_name>_first_last/final_results/`
+
 #### GPU-Accelerated Video Processing (NVDEC/NVENC)
 
 Video processing automatically detects and uses NVIDIA GPU for both **decoding** and **encoding** when available:
