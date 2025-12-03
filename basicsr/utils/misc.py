@@ -12,13 +12,34 @@ from .logger import get_root_logger
 IS_HIGH_VERSION = [int(m) for m in list(re.findall(r"^([0-9]+)\.([0-9]+)\.([0-9]+)([^0-9][a-zA-Z0-9]*)?(\+git.*)?$",\
     torch.__version__)[0][:3])] >= [1, 12, 0]
 
-def gpu_is_available():
+def gpu_is_available() -> bool:
+    """Check if GPU acceleration is available.
+
+    Checks for CUDA (NVIDIA) or MPS (Apple Silicon) availability.
+
+    Returns:
+        bool: True if GPU is available, False otherwise.
+    """
     if IS_HIGH_VERSION:
         if torch.backends.mps.is_available():
             return True
     return True if torch.cuda.is_available() and torch.backends.cudnn.is_available() else False
 
-def get_device(gpu_id=None):
+def get_device(gpu_id: int = None) -> torch.device:
+    """Get the appropriate PyTorch device for computation.
+
+    Automatically detects and returns the best available device:
+    CUDA (NVIDIA), MPS (Apple Silicon), or CPU.
+
+    Args:
+        gpu_id: Optional GPU index to use. If None, uses default GPU.
+
+    Returns:
+        torch.device: The selected device for PyTorch operations.
+
+    Raises:
+        TypeError: If gpu_id is not None or an integer.
+    """
     if gpu_id is None:
         gpu_str = ''
     elif isinstance(gpu_id, int):
@@ -32,8 +53,24 @@ def get_device(gpu_id=None):
     return torch.device('cuda'+gpu_str if torch.cuda.is_available() and torch.backends.cudnn.is_available() else 'cpu')
 
 
-def get_device_info():
-    """Get detailed device information for PyTorch processing."""
+def get_device_info() -> dict:
+    """Get detailed device information for PyTorch processing.
+
+    Gathers comprehensive information about the available compute device,
+    including GPU name, memory, and CUDA version if available.
+
+    Returns:
+        dict: Device information containing:
+            - device_type (str): 'cuda', 'mps', or 'cpu'
+            - device_name (str): Human-readable device name
+            - pytorch_version (str): PyTorch version string
+            - cuda_available (bool): Whether CUDA is available
+            - cudnn_available (bool): Whether cuDNN is available
+            - mps_available (bool): Whether MPS is available
+            - gpu_name (str | None): GPU model name if available
+            - gpu_memory (str | None): GPU VRAM if available
+            - cuda_version (str | None): CUDA version if available
+    """
     info = {
         'device_type': 'cpu',
         'device_name': 'CPU',
@@ -71,8 +108,16 @@ def get_device_info():
     return info
 
 
-def print_device_banner(info: dict = None):
-    """Print a clear and noticeable banner showing the processing device."""
+def print_device_banner(info: dict = None) -> None:
+    """Print a clear and noticeable banner showing the processing device.
+
+    Displays a colored terminal banner indicating whether GPU or CPU
+    is being used for image processing.
+
+    Args:
+        info: Device information dictionary from get_device_info().
+            If None, will be fetched automatically.
+    """
     if info is None:
         info = get_device_info()
 
@@ -106,8 +151,12 @@ def print_device_banner(info: dict = None):
     print(f'{color_end}')
 
 
-def print_cpu_warning():
-    """Print a warning when using CPU instead of GPU."""
+def print_cpu_warning() -> None:
+    """Print a warning when using CPU instead of GPU.
+
+    Displays a yellow warning banner with instructions on how to
+    enable GPU acceleration for faster processing.
+    """
     width = 60
     border = '!' * width
     color_start = '\033[93m'  # Yellow
@@ -126,8 +175,14 @@ def print_cpu_warning():
     print(f'{color_end}')
 
 
-def set_random_seed(seed):
-    """Set random seeds."""
+def set_random_seed(seed: int) -> None:
+    """Set random seeds for reproducibility.
+
+    Sets seeds for Python random, NumPy, and PyTorch (CPU and CUDA).
+
+    Args:
+        seed: The seed value to use for all random number generators.
+    """
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -135,15 +190,23 @@ def set_random_seed(seed):
     torch.cuda.manual_seed_all(seed)
 
 
-def get_time_str():
+def get_time_str() -> str:
+    """Get current timestamp as a formatted string.
+
+    Returns:
+        str: Timestamp in format 'YYYYMMDD_HHMMSS'.
+    """
     return time.strftime('%Y%m%d_%H%M%S', time.localtime())
 
 
-def mkdir_and_rename(path):
-    """mkdirs. If path exists, rename it with timestamp and create a new one.
+def mkdir_and_rename(path: str) -> None:
+    """Create directory, renaming existing one if it exists.
+
+    If the path already exists, renames it with a timestamp suffix
+    and creates a new directory at the original path.
 
     Args:
-        path (str): Folder path.
+        path: Folder path to create.
     """
     if osp.exists(path):
         new_name = path + '_archived_' + get_time_str()

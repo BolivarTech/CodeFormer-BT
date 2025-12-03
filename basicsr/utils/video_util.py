@@ -99,9 +99,16 @@ def get_ffmpeg_cuda_info():
     return info
 
 
-def print_decoding_banner(use_gpu: bool, info: dict):
-    """Print a clear and noticeable banner showing decoding mode."""
+def print_decoding_banner(use_gpu: bool, info: dict) -> None:
+    """Print a clear and noticeable banner showing decoding mode.
 
+    Displays a colored terminal banner indicating whether GPU (NVDEC)
+    or CPU is being used for video decoding.
+
+    Args:
+        use_gpu: Whether GPU decoding is being used.
+        info: FFmpeg CUDA info dictionary from get_ffmpeg_cuda_info().
+    """
     width = 60
     border = '=' * width
 
@@ -125,9 +132,17 @@ def print_decoding_banner(use_gpu: bool, info: dict):
     print(f'{color_end}')
 
 
-def print_encoding_banner(use_gpu: bool, codec: str, info: dict):
-    """Print a clear and noticeable banner showing encoding mode."""
+def print_encoding_banner(use_gpu: bool, codec: str, info: dict) -> None:
+    """Print a clear and noticeable banner showing encoding mode.
 
+    Displays a colored terminal banner indicating whether GPU (NVENC)
+    or CPU (libx264) is being used for video encoding.
+
+    Args:
+        use_gpu: Whether GPU encoding is being used.
+        codec: The codec being used (e.g., 'h264_nvenc', 'libx264').
+        info: FFmpeg CUDA info dictionary from get_ffmpeg_cuda_info().
+    """
     width = 60
     border = '=' * width
 
@@ -152,9 +167,16 @@ def print_encoding_banner(use_gpu: bool, codec: str, info: dict):
     print(f'{color_end}')
 
 
-def print_cuda_not_available_warning(info: dict, operation: str = 'encoding'):
-    """Print a warning when CUDA is requested but not available."""
+def print_cuda_not_available_warning(info: dict, operation: str = 'encoding') -> None:
+    """Print a warning when CUDA is requested but not available.
 
+    Displays a red warning banner with instructions on how to enable
+    CUDA acceleration for video encoding or decoding.
+
+    Args:
+        info: FFmpeg CUDA info dictionary from get_ffmpeg_cuda_info().
+        operation: The operation type ('encoding' or 'decoding').
+    """
     width = 60
     border = '!' * width
     color_start = '\033[91m'  # Red
@@ -186,7 +208,24 @@ FFMPEG_CUDA_INFO = get_ffmpeg_cuda_info()
 # Video Reader/Writer Classes
 # =============================================================================
 
-def get_video_meta_info(video_path):
+def get_video_meta_info(video_path: str) -> dict:
+    """Extract metadata from a video file.
+
+    Uses FFmpeg probe to get video properties including dimensions,
+    frame rate, codec, and audio stream.
+
+    Args:
+        video_path: Path to the video file.
+
+    Returns:
+        dict: Video metadata containing:
+            - width (int): Video width in pixels
+            - height (int): Video height in pixels
+            - fps (float): Frames per second
+            - audio: FFmpeg audio stream or None
+            - nb_frames (int): Total number of frames
+            - codec_name (str): Video codec name
+    """
     ret = {}
     probe = ffmpeg.probe(video_path)
     video_streams = [stream for stream in probe['streams'] if stream['codec_type'] == 'video']
@@ -200,8 +239,19 @@ def get_video_meta_info(video_path):
     return ret
 
 
-def get_cuvid_decoder(codec_name: str) -> str:
-    """Get the appropriate CUVID decoder for a given codec."""
+def get_cuvid_decoder(codec_name: str) -> str | None:
+    """Get the appropriate CUVID decoder for a given codec.
+
+    Maps video codec names to their corresponding NVIDIA CUVID
+    hardware decoder names.
+
+    Args:
+        codec_name: The video codec name (e.g., 'h264', 'hevc').
+
+    Returns:
+        str | None: The CUVID decoder name (e.g., 'h264_cuvid'),
+            or None if no CUVID decoder is available for the codec.
+    """
     codec_map = {
         'h264': 'h264_cuvid',
         'hevc': 'hevc_cuvid',
@@ -219,7 +269,27 @@ def get_cuvid_decoder(codec_name: str) -> str:
 
 
 class VideoReader:
-    def __init__(self, video_path, use_cuda=True):
+    """Video reader with optional CUDA hardware acceleration.
+
+    Reads video frames using FFmpeg with automatic CUDA/NVDEC
+    hardware acceleration when available.
+
+    Attributes:
+        width: Video width in pixels.
+        height: Video height in pixels.
+        input_fps: Video frame rate.
+        audio: FFmpeg audio stream or None.
+        nb_frames: Total number of frames.
+        use_gpu: Whether GPU decoding is being used.
+    """
+
+    def __init__(self, video_path: str, use_cuda: bool = True):
+        """Initialize video reader.
+
+        Args:
+            video_path: Path to the video file.
+            use_cuda: Whether to attempt CUDA hardware acceleration.
+        """
         self.paths = []  # for image&folder type
         self.audio = None
         self.use_gpu = False
@@ -290,44 +360,100 @@ class VideoReader:
 
         self.idx = 0
 
-    def get_resolution(self):
+    def get_resolution(self) -> tuple[int, int]:
+        """Get video resolution.
+
+        Returns:
+            tuple[int, int]: Video (height, width) in pixels.
+        """
         return self.height, self.width
 
-    def get_fps(self):
+    def get_fps(self) -> float:
+        """Get video frame rate.
+
+        Returns:
+            float: Frames per second (defaults to 24 if unknown).
+        """
         if self.input_fps is not None:
             return self.input_fps
         return 24
 
     def get_audio(self):
+        """Get the audio stream.
+
+        Returns:
+            FFmpeg audio stream or None if no audio.
+        """
         return self.audio
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Get total number of frames.
+
+        Returns:
+            int: Total frame count.
+        """
         return self.nb_frames
 
-    def get_frame_from_stream(self):
+    def get_frame_from_stream(self) -> np.ndarray | None:
+        """Read next frame from video stream.
+
+        Returns:
+            np.ndarray | None: BGR image array, or None if end of stream.
+        """
         img_bytes = self.stream_reader.stdout.read(self.width * self.height * 3)  # 3 bytes for one pixel
         if not img_bytes:
             return None
         img = np.frombuffer(img_bytes, np.uint8).reshape([self.height, self.width, 3])
         return img
 
-    def get_frame_from_list(self):
+    def get_frame_from_list(self) -> np.ndarray | None:
+        """Read next frame from image list.
+
+        Returns:
+            np.ndarray | None: BGR image array, or None if end of list.
+        """
         if self.idx >= self.nb_frames:
             return None
         img = cv2.imread(self.paths[self.idx])
         self.idx += 1
         return img
 
-    def get_frame(self):
+    def get_frame(self) -> np.ndarray | None:
+        """Get the next video frame.
+
+        Returns:
+            np.ndarray | None: BGR image array, or None if end of video.
+        """
         return self.get_frame_from_stream()
 
-    def close(self):
+    def close(self) -> None:
+        """Close the video reader and release resources."""
         self.stream_reader.stdin.close()
         self.stream_reader.wait()
 
 
 class VideoWriter:
-    def __init__(self, video_save_path, height, width, fps, audio, use_cuda=True):
+    """Video writer with optional CUDA hardware acceleration.
+
+    Writes video frames using FFmpeg with automatic CUDA/NVENC
+    hardware acceleration when available.
+
+    Attributes:
+        use_gpu: Whether GPU encoding is being used.
+    """
+
+    def __init__(self, video_save_path: str, height: int, width: int,
+                 fps: float, audio, use_cuda: bool = True):
+        """Initialize video writer.
+
+        Args:
+            video_save_path: Output path for the video file.
+            height: Video height in pixels.
+            width: Video width in pixels.
+            fps: Target frame rate.
+            audio: FFmpeg audio stream to include, or None.
+            use_cuda: Whether to attempt CUDA hardware acceleration.
+        """
         self.use_gpu = False
 
         if height > 2160:
@@ -380,7 +506,15 @@ class VideoWriter:
                                 **codec_params).overwrite_output().run_async(
                                     pipe_stdin=True, pipe_stdout=True, cmd='ffmpeg'))
 
-    def write_frame(self, frame):
+    def write_frame(self, frame: np.ndarray) -> None:
+        """Write a frame to the video.
+
+        Args:
+            frame: BGR image array to write.
+
+        Raises:
+            SystemExit: If FFmpeg pipe error occurs.
+        """
         try:
             frame = frame.astype(np.uint8).tobytes()
             self.stream_writer.stdin.write(frame)
@@ -389,6 +523,7 @@ class VideoWriter:
                   'Download from: https://ffmpeg.org/download.html')
             sys.exit(0)
 
-    def close(self):
+    def close(self) -> None:
+        """Close the video writer and finalize the file."""
         self.stream_writer.stdin.close()
         self.stream_writer.wait()

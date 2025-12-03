@@ -16,7 +16,19 @@ pretrain_model_url = {
     'restoration': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth',
 }
 
-def set_realesrgan():
+def set_realesrgan() -> 'RealESRGANer':
+    """Initialize and configure the RealESRGAN upsampler.
+
+    Creates a RealESRGAN model for background and face upsampling,
+    automatically configuring half-precision (FP16) based on GPU capabilities.
+
+    Returns:
+        RealESRGANer: Configured upsampler instance.
+
+    Note:
+        Uses global `args` for tile size configuration.
+        Prints warning if running on CPU due to slow performance.
+    """
     from basicsr.archs.rrdbnet_arch import RRDBNet
     from basicsr.utils.realesrgan_utils import RealESRGANer
 
