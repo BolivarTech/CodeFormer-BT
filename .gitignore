@@ -132,6 +132,7 @@ run.sh
 # IDEs and editors
 .idea
 
-# Claude files
+# Claude Code configuration
 CLAUDE.md
-.claude
+CLAUDE.local.md
+.claude/
