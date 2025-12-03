@@ -14,13 +14,18 @@ from basicsr.utils.registry import ARCH_REGISTRY
 
 pretrain_model_url = {
     'restoration': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth',
+    'realesrgan_x2': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/RealESRGAN_x2plus.pth',
+    'realesrgan_x4': 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth',
 }
 
-def set_realesrgan() -> 'RealESRGANer':
+def set_realesrgan(scale: int = 2) -> 'RealESRGANer':
     """Initialize and configure the RealESRGAN upsampler.
 
     Creates a RealESRGAN model for background and face upsampling,
     automatically configuring half-precision (FP16) based on GPU capabilities.
+
+    Args:
+        scale: Upsampling scale factor (2 or 4). Default: 2.
 
     Returns:
         RealESRGANer: Configured upsampler instance.
@@ -33,22 +38,35 @@ def set_realesrgan() -> 'RealESRGANer':
     from basicsr.utils.realesrgan_utils import RealESRGANer
 
     use_half = False
-    if torch.cuda.is_available(): # set False in CPU/MPS mode
-        no_half_gpu_list = ['1650', '1660'] # set False for GPUs that don't support f16
+    if torch.cuda.is_available():  # set False in CPU/MPS mode
+        no_half_gpu_list = ['1650', '1660']  # set False for GPUs that don't support f16
         if not True in [gpu in torch.cuda.get_device_name(0) for gpu in no_half_gpu_list]:
             use_half = True
 
-    model = RRDBNet(
-        num_in_ch=3,
-        num_out_ch=3,
-        num_feat=64,
-        num_block=23,
-        num_grow_ch=32,
-        scale=2,
-    )
+    if scale == 4:
+        model = RRDBNet(
+            num_in_ch=3,
+            num_out_ch=3,
+            num_feat=64,
+            num_block=23,
+            num_grow_ch=32,
+            scale=4,
+        )
+        model_path = pretrain_model_url['realesrgan_x4']
+    else:
+        model = RRDBNet(
+            num_in_ch=3,
+            num_out_ch=3,
+            num_feat=64,
+            num_block=23,
+            num_grow_ch=32,
+            scale=2,
+        )
+        model_path = pretrain_model_url['realesrgan_x2']
+
     upsampler = RealESRGANer(
-        scale=2,
-        model_path="https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/RealESRGAN_x2plus.pth",
+        scale=scale,
+        model_path=model_path,
         model=model,
         tile=args.bg_tile,
         tile_pad=40,
@@ -92,7 +110,8 @@ if __name__ == '__main__':
     parser.add_argument('--detection_model', type=str, default='retinaface_resnet50', 
             help='Face detector. Optional: retinaface_resnet50, retinaface_mobile0.25, YOLOv5l, YOLOv5n, dlib. \
                 Default: retinaface_resnet50')
-    parser.add_argument('--bg_upsampler', type=str, default='None', help='Background upsampler. Optional: realesrgan')
+    parser.add_argument('--bg_upsampler', type=str, default='None',
+            help='Background upsampler. Options: realesrgan (x2), realesrgan_x4 (x4). Default: None')
     parser.add_argument('--face_upsample', action='store_true', help='Face upsampler after enhancement. Default: False')
     parser.add_argument('--bg_tile', type=int, default=400, help='Tile size for background sampler. Default: 400')
     parser.add_argument('--suffix', type=str, default=None, help='Suffix of the restored faces. Default: None')
@@ -179,7 +198,9 @@ if __name__ == '__main__':
 
     # ------------------ set up background upsampler ------------------
     if args.bg_upsampler == 'realesrgan':
-        bg_upsampler = set_realesrgan()
+        bg_upsampler = set_realesrgan(scale=2)
+    elif args.bg_upsampler == 'realesrgan_x4':
+        bg_upsampler = set_realesrgan(scale=4)
     else:
         bg_upsampler = None
 
@@ -188,7 +209,7 @@ if __name__ == '__main__':
         if bg_upsampler is not None:
             face_upsampler = bg_upsampler
         else:
-            face_upsampler = set_realesrgan()
+            face_upsampler = set_realesrgan(scale=2)
     else:
         face_upsampler = None
 

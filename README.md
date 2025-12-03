@@ -88,8 +88,13 @@ CodeFormer is a state-of-the-art blind face restoration model that leverages a *
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/sczhou/CodeFormer.git
-cd CodeFormer
+# Clone this fork (Python 3.13 compatible)
+git clone https://github.com/BolivarTech/CodeFormer-BT.git
+cd CodeFormer-BT
+
+# Or clone the original repository
+# git clone https://github.com/sczhou/CodeFormer.git
+# cd CodeFormer
 ```
 
 ### 2. Create Virtual Environment
@@ -185,6 +190,72 @@ python scripts/download_pretrained_models.py dlib
 
 > **Note:** dlib is optional. By default, CodeFormer uses RetinaFace for face detection.
 
+### 8. (Optional) Install FFmpeg for Video Processing
+
+FFmpeg is required for video enhancement features.
+
+<details>
+<summary><strong>Windows (Chocolatey - recommended)</strong></summary>
+
+[Chocolatey](https://chocolatey.org/install) is a package manager for Windows.
+
+```powershell
+# Install Chocolatey (run as Administrator)
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+# Install FFmpeg with NVENC/NVDEC support
+choco install ffmpeg-full -y
+
+# Verify installation
+ffmpeg -version
+```
+
+Other useful packages:
+```powershell
+choco install git python313 cuda -y
+```
+
+</details>
+
+<details>
+<summary><strong>Windows (Manual)</strong></summary>
+
+1. Download FFmpeg from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) (full build for NVENC/NVDEC support)
+2. Extract to `C:\ffmpeg`
+3. Add `C:\ffmpeg\bin` to your PATH environment variable
+
+```bash
+# Verify installation
+ffmpeg -version
+```
+
+</details>
+
+<details>
+<summary><strong>Linux</strong></summary>
+
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install ffmpeg
+
+# With NVENC support (requires NVIDIA drivers)
+sudo apt install ffmpeg nvidia-cuda-toolkit
+```
+
+</details>
+
+<details>
+<summary><strong>macOS</strong></summary>
+
+```bash
+brew install ffmpeg
+```
+
+</details>
+
+> **Note:** For GPU-accelerated video encoding/decoding, use FFmpeg builds with NVENC/NVDEC support.
+
 ---
 
 ## Quick Start
@@ -223,6 +294,15 @@ When running, you'll see a banner showing the processing device:
 | `0.5 - 0.6` | Balanced (recommended) |
 | `0.7 - 1.0` | Better identity preservation |
 
+### Background Upsampler (`--bg_upsampler`)
+
+| Option | Scale | Model | Description |
+|--------|-------|-------|-------------|
+| `realesrgan` | 2x | RealESRGAN_x2plus | Standard quality, faster |
+| `realesrgan_x4` | 4x | RealESRGAN_x4plus | Higher quality, larger output |
+
+Models are downloaded automatically on first use.
+
 ### Face Restoration
 
 ```bash
@@ -232,8 +312,11 @@ python inference_codeformer.py -w 0.5 --has_aligned --input_path inputs/cropped_
 # Whole image
 python inference_codeformer.py -w 0.7 --input_path inputs/whole_imgs
 
-# With background enhancement
+# With background enhancement (2x)
 python inference_codeformer.py -w 0.7 --bg_upsampler realesrgan --face_upsample --input_path inputs/whole_imgs
+
+# With background enhancement (4x - higher quality)
+python inference_codeformer.py -w 0.7 --bg_upsampler realesrgan_x4 --face_upsample --input_path inputs/whole_imgs
 ```
 
 ### Video Enhancement
@@ -250,8 +333,11 @@ Extract and restore only the first and last frames of a video (useful for quick 
 # Basic extraction
 python inference_codeformer.py -w 0.7 --first_last --input_path inputs/video.mp4
 
-# With background and face upsampling
+# With background and face upsampling (2x)
 python inference_codeformer.py -w 0.7 --first_last --bg_upsampler realesrgan --face_upsample --input_path inputs/video.mp4
+
+# With background and face upsampling (4x - higher quality)
+python inference_codeformer.py -w 0.7 --first_last --bg_upsampler realesrgan_x4 --face_upsample --input_path inputs/video.mp4
 ```
 
 **Output:** `frame_first.png` and `frame_last.png` in `results/<video_name>_first_last/final_results/`

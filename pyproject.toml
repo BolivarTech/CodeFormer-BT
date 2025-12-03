@@ -49,8 +49,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sczhou/CodeFormer"
-Repository = "https://github.com/sczhou/CodeFormer"
+Homepage = "https://github.com/BolivarTech/CodeFormer-BT"
+Repository = "https://github.com/BolivarTech/CodeFormer-BT"
+Original = "https://github.com/sczhou/CodeFormer"
 
 [tool.setuptools]
 packages = ["basicsr", "basicsr.archs", "basicsr.data", "basicsr.losses", "basicsr.metrics", "basicsr.models", "basicsr.ops", "basicsr.utils", "facelib", "facelib.detection", "facelib.detection.retinaface", "facelib.detection.yolov5face", "facelib.parsing", "facelib.utils"]
