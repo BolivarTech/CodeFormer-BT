@@ -76,9 +76,10 @@ version_info = ({})
 
 
 def get_version():
+    version_vars = {}
     with open(version_file, 'r') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
+        exec(compile(f.read(), version_file, 'exec'), version_vars)
+    return version_vars['__version__']
 
 
 def make_cuda_ext(name, module, sources, sources_cuda=None):
@@ -155,8 +156,10 @@ if __name__ == '__main__':
             'License :: OSI Approved :: Apache Software License',
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
+            'Programming Language :: Python :: 3.12',
+            'Programming Language :: Python :: 3.13',
         ],
         license='Apache License 2.0',
         setup_requires=['cython', 'numpy'],

@@ -1,17 +1,19 @@
+# CodeFormer dependencies - Python 3.13 / CUDA 13.0 compatible
 addict
 future
 lmdb
-numpy
-opencv-python
-Pillow
+numpy>=2.0.0
+opencv-python>=4.10.0
+Pillow>=10.4.0
 pyyaml
 requests
-scikit-image
-scipy
-tb-nightly
-torch>=1.7.1
-torchvision
+scikit-image>=0.24.0
+scipy>=1.14.0
+tensorboard>=2.18.0
+torch>=2.6.0
+torchvision>=0.21.0
+torchaudio>=2.6.0
 tqdm
 yapf
 lpips
-gdown # supports downloading the large file from Google Drive
+gdown  # supports downloading the large file from Google Drive

@@ -32,6 +32,100 @@ def get_device(gpu_id=None):
     return torch.device('cuda'+gpu_str if torch.cuda.is_available() and torch.backends.cudnn.is_available() else 'cpu')
 
 
+def get_device_info():
+    """Get detailed device information for PyTorch processing."""
+    info = {
+        'device_type': 'cpu',
+        'device_name': 'CPU',
+        'pytorch_version': torch.__version__,
+        'cuda_available': False,
+        'cudnn_available': False,
+        'mps_available': False,
+        'gpu_name': None,
+        'gpu_memory': None,
+        'cuda_version': None,
+    }
+
+    # Check CUDA
+    info['cuda_available'] = torch.cuda.is_available()
+    info['cudnn_available'] = torch.backends.cudnn.is_available()
+
+    # Check MPS (Apple Silicon)
+    if IS_HIGH_VERSION:
+        info['mps_available'] = torch.backends.mps.is_available()
+
+    # Determine device type and get GPU info
+    if info['cuda_available'] and info['cudnn_available']:
+        info['device_type'] = 'cuda'
+        info['device_name'] = 'NVIDIA CUDA'
+        info['gpu_name'] = torch.cuda.get_device_name(0)
+        info['gpu_memory'] = f"{torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB"
+        info['cuda_version'] = torch.version.cuda
+    elif info['mps_available']:
+        info['device_type'] = 'mps'
+        info['device_name'] = 'Apple MPS'
+    else:
+        info['device_type'] = 'cpu'
+        info['device_name'] = 'CPU'
+
+    return info
+
+
+def print_device_banner(info: dict = None):
+    """Print a clear and noticeable banner showing the processing device."""
+    if info is None:
+        info = get_device_info()
+
+    width = 60
+    border = '=' * width
+
+    device_type = info['device_type']
+
+    if device_type == 'cuda':
+        mode = 'GPU (NVIDIA CUDA)'
+        color_start = '\033[92m'  # Green
+    elif device_type == 'mps':
+        mode = 'GPU (Apple MPS)'
+        color_start = '\033[92m'  # Green
+    else:
+        mode = 'CPU'
+        color_start = '\033[93m'  # Yellow
+
+    color_end = '\033[0m'
+
+    print(f'\n{color_start}{border}')
+    print(f'{"IMAGE PROCESSING":^{width}}')
+    print(border)
+    print(f'  Device:    {mode}')
+    print(f'  PyTorch:   {info["pytorch_version"]}')
+    if device_type == 'cuda':
+        print(f'  GPU:       {info["gpu_name"]}')
+        print(f'  VRAM:      {info["gpu_memory"]}')
+        print(f'  CUDA:      {info["cuda_version"]}')
+    print(border)
+    print(f'{color_end}')
+
+
+def print_cpu_warning():
+    """Print a warning when using CPU instead of GPU."""
+    width = 60
+    border = '!' * width
+    color_start = '\033[93m'  # Yellow
+    color_end = '\033[0m'
+
+    print(f'\n{color_start}{border}')
+    print(f'{"WARNING: USING CPU FOR PROCESSING":^{width}}')
+    print(border)
+    print(f'  Processing will be significantly slower.')
+    print(f'  ')
+    print(f'  To enable GPU acceleration:')
+    print(f'  1. Install NVIDIA GPU drivers')
+    print(f'  2. Install PyTorch with CUDA support:')
+    print(f'     pip install torch --index-url https://download.pytorch.org/whl/cu124')
+    print(border)
+    print(f'{color_end}')
+
+
 def set_random_seed(seed):
     """Set random seeds."""
     random.seed(seed)

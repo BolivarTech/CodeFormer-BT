@@ -6,7 +6,7 @@ import torch
 from torchvision.transforms.functional import normalize
 from basicsr.utils import imwrite, img2tensor, tensor2img
 from basicsr.utils.download_util import load_file_from_url
-from basicsr.utils.misc import gpu_is_available, get_device
+from basicsr.utils.misc import gpu_is_available, get_device, get_device_info, print_device_banner, print_cpu_warning
 from facelib.utils.face_restoration_helper import FaceRestoreHelper
 from facelib.utils.misc import is_gray
 
@@ -55,6 +55,13 @@ def set_realesrgan():
 if __name__ == '__main__':
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = get_device()
+
+    # Print device information banner
+    device_info = get_device_info()
+    print_device_banner(device_info)
+    if device_info['device_type'] == 'cpu':
+        print_cpu_warning()
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-i', '--input_path', type=str, default='./inputs/whole_imgs', 

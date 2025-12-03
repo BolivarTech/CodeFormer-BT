@@ -1,219 +1,417 @@
 <p align="center">
-  <img src="assets/CodeFormer_logo.png" height=110>
+  <img src="assets/CodeFormer_logo.png" height="110" alt="CodeFormer Logo">
 </p>
 
-## Towards Robust Blind Face Restoration with Codebook Lookup Transformer (NeurIPS 2022)
+<h1 align="center">CodeFormer-BT</h1>
 
-[Paper](https://arxiv.org/abs/2206.11253) | [Project Page](https://shangchenzhou.com/projects/CodeFormer/) | [Video](https://youtu.be/d3VDpkXlueI)
+<p align="center">
+  <strong>Robust Blind Face Restoration with Codebook Lookup Transformer</strong>
+</p>
 
+<p align="center">
+  <a href="https://arxiv.org/abs/2206.11253"><img src="https://img.shields.io/badge/arXiv-2206.11253-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://shangchenzhou.com/projects/CodeFormer/"><img src="https://img.shields.io/badge/Project-Page-blue" alt="Project Page"></a>
+  <a href="https://github.com/sczhou/CodeFormer/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-NTU%20S--Lab%201.0-green.svg" alt="License"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.10--3.13-blue.svg" alt="Python"></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.6%2B-ee4c2c.svg" alt="PyTorch"></a>
+</p>
 
-<a href="https://colab.research.google.com/drive/1m52PNveE4PBhYrecj34cnpEeiHcC5LTb?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="google colab logo"></a> [![Hugging Face](https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue)](https://huggingface.co/spaces/sczhou/CodeFormer) [![Replicate](https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue)](https://replicate.com/sczhou/codeformer) [![OpenXLab](https://img.shields.io/badge/Demo-%F0%9F%90%BC%20OpenXLab-blue)](https://openxlab.org.cn/apps/detail/ShangchenZhou/CodeFormer) ![Visitors](https://api.infinitescript.com/badgen/count?name=sczhou/CodeFormer&ltext=Visitors)
+<p align="center">
+  <a href="https://huggingface.co/spaces/sczhou/CodeFormer"><img src="https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue" alt="Hugging Face"></a>
+  <a href="https://replicate.com/sczhou/codeformer"><img src="https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue" alt="Replicate"></a>
+  <a href="https://openxlab.org.cn/apps/detail/ShangchenZhou/CodeFormer"><img src="https://img.shields.io/badge/Demo-%F0%9F%90%BC%20OpenXLab-blue" alt="OpenXLab"></a>
+</p>
 
+---
 
-[Shangchen Zhou](https://shangchenzhou.com/), [Kelvin C.K. Chan](https://ckkelvinchan.github.io/), [Chongyi Li](https://li-chongyi.github.io/), [Chen Change Loy](https://www.mmlab-ntu.com/person/ccloy/) 
+> **Note:** This is a fork of the original [CodeFormer](https://github.com/sczhou/CodeFormer) project, updated for Python 3.13 and modern CUDA versions. For the original documentation, see [README-ORG.md](README-ORG.md).
 
-S-Lab, Nanyang Technological University
+---
 
-<img src="assets/network.jpg" width="800px"/>
+## Table of Contents
 
+- [Overview](#overview)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Face Restoration](#face-restoration)
+  - [Video Enhancement](#video-enhancement)
+  - [GPU-Accelerated Processing](#gpu-accelerated-video-processing-nvdecnvenc)
+  - [Face Colorization](#face-colorization)
+  - [Face Inpainting](#face-inpainting)
+- [Training](#training)
+- [Project Structure](#project-structure)
+- [Citation](#citation)
+- [License](#license)
 
-:star: If CodeFormer is helpful to your images or projects, please help star this repo. Thanks! :hugs: 
+---
 
+## Overview
 
-### Update
-- **2023.07.20**: Integrated to :panda_face: [OpenXLab](https://openxlab.org.cn/apps). Try out online demo! [![OpenXLab](https://img.shields.io/badge/Demo-%F0%9F%90%BC%20OpenXLab-blue)](https://openxlab.org.cn/apps/detail/ShangchenZhou/CodeFormer)
-- **2023.04.19**: :whale: Training codes and config files are public available now.
-- **2023.04.09**: Add features of inpainting and colorization for cropped and aligned face images.
-- **2023.02.10**: Include `dlib` as a new face detector option, it produces more accurate face identity.
-- **2022.10.05**: Support video input `--input_path [YOUR_VIDEO.mp4]`. Try it to enhance your videos! :clapper: 
-- **2022.09.14**: Integrated to :hugs: [Hugging Face](https://huggingface.co/spaces). Try out online demo! [![Hugging Face](https://img.shields.io/badge/Demo-%F0%9F%A4%97%20Hugging%20Face-blue)](https://huggingface.co/spaces/sczhou/CodeFormer)
-- **2022.09.09**: Integrated to :rocket: [Replicate](https://replicate.com/explore). Try out online demo! [![Replicate](https://img.shields.io/badge/Demo-%F0%9F%9A%80%20Replicate-blue)](https://replicate.com/sczhou/codeformer)
-- [**More**](docs/history_changelog.md)
+CodeFormer is a state-of-the-art blind face restoration model that leverages a **Codebook Lookup Transformer** to restore degraded face images. Published at **NeurIPS 2022**, it achieves remarkable results in face restoration, colorization, and inpainting tasks.
 
-### TODO
-- [x] Add training code and config files
-- [x] Add checkpoint and script for face inpainting
-- [x] Add checkpoint and script for face colorization
-- [x] ~~Add background image enhancement~~
+<p align="center">
+  <img src="assets/network.jpg" width="800" alt="CodeFormer Architecture">
+</p>
 
-#### :panda_face: Try Enhancing Old Photos / Fixing AI-arts
-[<img src="assets/imgsli_1.jpg" height="226px"/>](https://imgsli.com/MTI3NTE2) [<img src="assets/imgsli_2.jpg" height="226px"/>](https://imgsli.com/MTI3NTE1) [<img src="assets/imgsli_3.jpg" height="226px"/>](https://imgsli.com/MTI3NTIw) 
+---
 
-#### Face Restoration
+## Features
 
-<img src="assets/restoration_result1.png" width="400px"/> <img src="assets/restoration_result2.png" width="400px"/>
-<img src="assets/restoration_result3.png" width="400px"/> <img src="assets/restoration_result4.png" width="400px"/>
+| Feature | Description |
+|---------|-------------|
+| **Face Restoration** | Restore degraded, blurry, or low-quality face images |
+| **Face Colorization** | Colorize black & white or faded photographs |
+| **Face Inpainting** | Fill in missing or masked regions of face images |
+| **Video Enhancement** | Process video files with face restoration |
+| **GPU Image Processing** | NVIDIA CUDA acceleration for neural network inference |
+| **GPU Video Encoding** | NVIDIA NVENC/NVDEC hardware acceleration for video |
+| **Background Enhancement** | Optional Real-ESRGAN integration for full image enhancement |
 
-#### Face Color Enhancement and Restoration
+---
 
-<img src="assets/color_enhancement_result1.png" width="400px"/> <img src="assets/color_enhancement_result2.png" width="400px"/>
+## Requirements
 
-#### Face Inpainting
+| Component | Version |
+|-----------|---------|
+| **Python** | 3.10 - 3.13 |
+| **PyTorch** | >= 2.6.0 |
+| **CUDA** | 12.4 - 13.0 |
+| **GPU VRAM** | 4 GB minimum |
 
-<img src="assets/inpainting_result1.png" width="400px"/> <img src="assets/inpainting_result2.png" width="400px"/>
+---
 
+## Installation
 
+### 1. Clone Repository
 
-### Dependencies and Installation
-
-- Pytorch >= 1.7.1
-- CUDA >= 10.1
-- Other required packages in `requirements.txt`
-```
-# git clone this repository
-git clone https://github.com/sczhou/CodeFormer
+```bash
+git clone https://github.com/sczhou/CodeFormer.git
 cd CodeFormer
-
-# create new anaconda env
-conda create -n codeformer python=3.8 -y
-conda activate codeformer
-
-# install python dependencies
-pip3 install -r requirements.txt
-python basicsr/setup.py develop
-conda install -c conda-forge dlib (only for face detection or cropping with dlib)
 ```
-<!-- conda install -c conda-forge dlib -->
 
-### Quick Inference
+### 2. Create Virtual Environment
 
-#### Download Pre-trained Models:
-Download the facelib and dlib pretrained models from [[Releases](https://github.com/sczhou/CodeFormer/releases/tag/v0.1.0) | [Google Drive](https://drive.google.com/drive/folders/1b_3qwrzY_kTQh0-SnBoGBgOrJ_PLZSKm?usp=sharing) | [OneDrive](https://entuedu-my.sharepoint.com/:f:/g/personal/s200094_e_ntu_edu_sg/EvDxR7FcAbZMp_MA9ouq7aQB8XTppMb3-T0uGZ_2anI2mg?e=DXsJFo)] to the `weights/facelib` folder. You can manually download the pretrained models OR download by running the following command:
+```bash
+# Create venv
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+
+# Activate (Linux/macOS)
+source venv/bin/activate
 ```
+
+### 3. Install PyTorch
+
+Select according to your CUDA version:
+
+```bash
+# CUDA 12.4 (recommended)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+# CUDA 13.0 (experimental)
+pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu130
+
+# CPU only
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+### 4. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Install BasicSR
+
+```bash
+pip install -e .
+```
+
+### 6. Download Pretrained Models
+
+```bash
 python scripts/download_pretrained_models.py facelib
-python scripts/download_pretrained_models.py dlib (only for dlib face detector)
-```
-
-Download the CodeFormer pretrained models from [[Releases](https://github.com/sczhou/CodeFormer/releases/tag/v0.1.0) | [Google Drive](https://drive.google.com/drive/folders/1CNNByjHDFt0b95q54yMVp6Ifo5iuU6QS?usp=sharing) | [OneDrive](https://entuedu-my.sharepoint.com/:f:/g/personal/s200094_e_ntu_edu_sg/EoKFj4wo8cdIn2-TY2IV6CYBhZ0pIG4kUOeHdPR_A5nlbg?e=AO8UN9)] to the `weights/CodeFormer` folder. You can manually download the pretrained models OR download by running the following command:
-```
 python scripts/download_pretrained_models.py CodeFormer
 ```
 
-#### Prepare Testing Data:
-You can put the testing images in the `inputs/TestWhole` folder. If you would like to test on cropped and aligned faces, you can put them in the `inputs/cropped_faces` folder. You can get the cropped and aligned faces by running the following command:
-```
-# you may need to install dlib via: conda install -c conda-forge dlib
-python scripts/crop_align_face.py -i [input folder] -o [output folder]
+### 7. (Optional) Install dlib
+
+dlib provides better face identity preservation. Choose one option:
+
+<details>
+<summary><strong>Option A: pip install (requires C++ compiler)</strong></summary>
+
+```bash
+pip install dlib
 ```
 
+**Prerequisites (Windows):**
+- [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with "Desktop development with C++"
 
-#### Testing:
-[Note] If you want to compare CodeFormer in your paper, please run the following command indicating `--has_aligned` (for cropped and aligned face), as the command for the whole image will involve a process of face-background fusion that may damage hair texture on the boundary, which leads to unfair comparison.
+</details>
 
-Fidelity weight *w* lays in [0, 1]. Generally, smaller *w* tends to produce a higher-quality result, while larger *w* yields a higher-fidelity result. The results will be saved in the `results` folder.
+<details>
+<summary><strong>Option B: Precompiled wheel (Windows - no compilation)</strong></summary>
 
+Download the appropriate wheel from [Dlib_Windows_Python3.x](https://github.com/z-mahmud22/Dlib_Windows_Python3.x):
 
-🧑🏻 Face Restoration (cropped and aligned face)
-```
-# For cropped and aligned faces (512x512)
-python inference_codeformer.py -w 0.5 --has_aligned --input_path [image folder]|[image path]
-```
-
-:framed_picture: Whole Image Enhancement
-```
-# For whole image
-# Add '--bg_upsampler realesrgan' to enhance the background regions with Real-ESRGAN
-# Add '--face_upsample' to further upsample restorated face with Real-ESRGAN
-python inference_codeformer.py -w 0.7 --input_path [image folder]|[image path]
+```bash
+# Example for Python 3.13
+pip install dlib-19.24.99-cp313-cp313-win_amd64.whl
 ```
 
-:clapper: Video Enhancement
-```
-# For Windows/Mac users, please install ffmpeg first
-conda install -c conda-forge ffmpeg
-```
-```
-# For video clips
-# Video path should end with '.mp4'|'.mov'|'.avi'
-python inference_codeformer.py --bg_upsampler realesrgan --face_upsample -w 1.0 --input_path [video path]
+</details>
+
+<details>
+<summary><strong>Option C: Build from source</strong></summary>
+
+```bash
+pip install cmake
+pip install dlib --verbose
 ```
 
-🌈 Face Colorization (cropped and aligned face)
-```
-# For cropped and aligned faces (512x512)
-# Colorize black and white or faded photo
-python inference_colorization.py --input_path [image folder]|[image path]
+</details>
+
+After installing dlib, download its models:
+
+```bash
+python scripts/download_pretrained_models.py dlib
 ```
 
-🎨 Face Inpainting (cropped and aligned face)
-```
-# For cropped and aligned faces (512x512)
-# Inputs could be masked by white brush using an image editing app (e.g., Photoshop) 
-# (check out the examples in inputs/masked_faces)
-python inference_inpainting.py --input_path [image folder]|[image path]
-```
-### Training:
-The training commands can be found in the documents: [English](docs/train.md) **|** [简体中文](docs/train_CN.md).
-
-### License
-
-This project is licensed under <a rel="license" href="https://github.com/sczhou/CodeFormer/blob/master/LICENSE">NTU S-Lab License 1.0</a>. Redistribution and use should follow this license.
+> **Note:** dlib is optional. By default, CodeFormer uses RetinaFace for face detection.
 
 ---
-### 🐼 Ecosystem Applications & Deployments
 
-CodeFormer has been widely adopted and deployed across a broad range (>20) of online applications, platforms, API services, and independent websites, and has also been integrated into many open-source projects and toolkits.
+## Quick Start
 
-> Only demos on **Hugging Face Space**, **Replicate**, and **OpenXLab** are official deployments **maintained by the authors**. All other demos, APIs, apps, websites, and integrations listed below are **third-party (non-official)** and are not affiliated with the CodeFormer authors. Please verify their legitimacy to avoid potential financial loss.
+```bash
+# Basic face restoration
+python inference_codeformer.py -w 0.7 --input_path inputs/whole_imgs
 
+# With background enhancement
+python inference_codeformer.py -w 0.7 --bg_upsampler realesrgan --face_upsample --input_path inputs/whole_imgs
+```
 
-#### Websites (Non-official)
+When running, you'll see a banner showing the processing device:
 
-⚠️⚠️⚠️ The following websites are **not official and are not operated by us**. They use our models without any license or authorization. Please verify their legitimacy to avoid potential financial loss.
-
-
-| Website | Link | Notes |
-|---------|------|--------|
-| CodeFormer.net | https://codeformer.net/ | Non-official website |
-| CodeFormer.cn | https://www.codeformer.cn/ | Non-official website |
-| CodeFormerAI.com | https://codeformerai.com/ | Non-official website |
-
-#### Online Demos / API Platforms
-
-| Platform | Link | Notes |
-|----------|------|--------|
-| Hugging Face | https://huggingface.co/spaces/sczhou/CodeFormer | Maintained by Authors |
-| Replicate | https://replicate.com/sczhou/codeformer | Maintained by Authors |
-| OpenXLab | https://openxlab.org.cn/apps/detail/ShangchenZhou/CodeFormer |Maintained by Authors |
-| Segmind | https://www.segmind.com/models/codeformer | Non-official |
-| Sieve | https://www.sievedata.com/functions/sieve/codeformer | Non-official |
-| Fal.ai | https://fal.ai/models/fal-ai/codeformer | Non-official |
-| VaikerAI | https://vaikerai.com/sczhou/codeformer | Non-official |
-| Scade.pro | https://www.scade.pro/processors/lucataco-codeformer | Non-official |
-| Grandline | https://www.grandline.ai/model/codeformer | Non-official |
-| AI Demos | https://aidemos.com/tools/codeformer | Non-official |
-| Synexa | https://synexa.ai/explore/sczhou/codeformer | Non-official |
-| RentPrompts | https://rentprompts.ai/models/Codeformer | Non-official |
-| ElevaticsAI | https://elevatics.ai/models/super-resolution/codeformer | Non-official |
-| Anakin.ai | https://anakin.ai/apps/codeformer-online-face-restoration-by-codeformer-19343 | Non-official |
-| Relayto | https://relayto.com/explore/codeformer-yf9rj8kwc7zsr | Non-official |
-
-
-#### Open-Source Projects & Toolkits
-
-| Project / Toolkit | Link | Notes |
-|-------------------|------|--------|
-| Stable Diffusion GUI | https://nmkd.itch.io/t2i-gui | Integration |
-| Stable Diffusion WebUI | https://github.com/AUTOMATIC1111/stable-diffusion-webui | Integration |
-| ChaiNNer | https://github.com/chaiNNer-org/chaiNNer | Integration |
-| PyPI | https://pypi.org/project/codeformer/ ; https://pypi.org/project/codeformer-pip/ | Python packages |
-| ComfyUI | https://stable-diffusion-art.com/codeformer/ | Integration |
+```
+============================================================
+                      IMAGE PROCESSING
+============================================================
+  Device:    GPU (NVIDIA CUDA)
+  PyTorch:   2.6.0+cu124
+  GPU:       Quadro P1000
+  VRAM:      4.0 GB
+  CUDA:      12.4
+============================================================
+```
 
 ---
-### Acknowledgement
 
-This project is based on [BasicSR](https://github.com/XPixelGroup/BasicSR). Some codes are brought from [Unleashing Transformers](https://github.com/samb-t/unleashing-transformers), [YOLOv5-face](https://github.com/deepcam-cn/yolov5-face), and [FaceXLib](https://github.com/xinntao/facexlib). We also adopt [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) to support background image enhancement. Thanks for their awesome works.
+## Usage
 
-### Citation
-If our work is useful for your research, please consider citing:
+### Fidelity Weight (`-w`)
 
-    @inproceedings{zhou2022codeformer,
-        author = {Zhou, Shangchen and Chan, Kelvin C.K. and Li, Chongyi and Loy, Chen Change},
-        title = {Towards Robust Blind Face Restoration with Codebook Lookup TransFormer},
-        booktitle = {NeurIPS},
-        year = {2022}
-    }
+| Weight | Effect |
+|--------|--------|
+| `0.0 - 0.4` | Higher quality, may alter identity |
+| `0.5 - 0.6` | Balanced (recommended) |
+| `0.7 - 1.0` | Better identity preservation |
 
+### Face Restoration
 
-### Contact
-If you have any questions, please feel free to reach me out at `shangchenzhou@gmail.com`. 
+```bash
+# Aligned faces (512x512)
+python inference_codeformer.py -w 0.5 --has_aligned --input_path inputs/cropped_faces
+
+# Whole image
+python inference_codeformer.py -w 0.7 --input_path inputs/whole_imgs
+
+# With background enhancement
+python inference_codeformer.py -w 0.7 --bg_upsampler realesrgan --face_upsample --input_path inputs/whole_imgs
+```
+
+### Video Enhancement
+
+```bash
+python inference_codeformer.py --bg_upsampler realesrgan --face_upsample -w 1.0 --input_path inputs/video.mp4
+```
+
+#### GPU-Accelerated Video Processing (NVDEC/NVENC)
+
+Video processing automatically detects and uses NVIDIA GPU for both **decoding** and **encoding** when available:
+
+| Operation | GPU Mode | CPU Mode | Speed Improvement |
+|-----------|----------|----------|-------------------|
+| **Decoding** | NVDEC/CUVID | Software | ~2-3x faster |
+| **Encoding** | NVENC | libx264 | ~5-10x faster |
+
+**Supported CUDA Decoders:**
+- H.264, HEVC/H.265, VP8, VP9, AV1, MPEG-1/2/4, MJPEG, VC1
+
+When processing videos, you'll see clear banners indicating the mode:
+
+<details>
+<summary><strong>Decoding Banners</strong></summary>
+
+**GPU Decoding (Green):**
+```
+============================================================
+                       VIDEO DECODING
+============================================================
+  Mode:      GPU (NVIDIA NVDEC/CUVID)
+  FFmpeg:    8.0.1
+  NVDEC:     av1_cuvid, h264_cuvid, hevc_cuvid, mjpeg_cuvid
+============================================================
+```
+
+**CPU Decoding (Yellow):**
+```
+============================================================
+                       VIDEO DECODING
+============================================================
+  Mode:      CPU (Software Decoder)
+  FFmpeg:    8.0.1
+============================================================
+```
+</details>
+
+<details>
+<summary><strong>Encoding Banners</strong></summary>
+
+**GPU Encoding (Green):**
+```
+============================================================
+                       VIDEO ENCODING
+============================================================
+  Mode:      GPU (NVIDIA NVENC)
+  Codec:     h264_nvenc
+  FFmpeg:    8.0.1
+  NVENC:     av1_nvenc, h264_nvenc, hevc_nvenc
+============================================================
+```
+
+**CPU Encoding (Yellow):**
+```
+============================================================
+                       VIDEO ENCODING
+============================================================
+  Mode:      CPU (libx264)
+  Codec:     libx264
+  FFmpeg:    8.0.1
+============================================================
+```
+</details>
+
+<details>
+<summary><strong>CUDA Not Available Warning (Red)</strong></summary>
+
+```
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+          WARNING: CUDA DECODING NOT AVAILABLE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  NVDEC decoders: Not found
+  CUDA hwaccel:   No
+
+  Falling back to CPU decoding (slower)
+
+  To enable CUDA decoding:
+  1. Install NVIDIA GPU drivers
+  2. Use FFmpeg with NVENC/NVDEC support
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+```
+</details>
+
+> **Note:** Download FFmpeg with NVENC/NVDEC support from [gyan.dev](https://www.gyan.dev/ffmpeg/builds/) (full build).
+
+### Face Colorization
+
+```bash
+python inference_colorization.py --input_path inputs/gray_faces
+```
+
+### Face Inpainting
+
+```bash
+python inference_inpainting.py --input_path inputs/masked_faces
+```
+
+---
+
+## Training
+
+Three-stage training pipeline:
+
+| Stage | Description | Config |
+|-------|-------------|--------|
+| **I** | VQGAN codebook | `VQGAN_512_ds32_nearest_stage1.yml` |
+| **II** | Transformer (w=0) | `CodeFormer_stage2.yml` |
+| **III** | Controllable (w=1) | `CodeFormer_stage3.yml` |
+
+```bash
+# Stage I
+python -m torch.distributed.launch --nproc_per_node=8 --master_port=4321 \
+    basicsr/train.py -opt options/VQGAN_512_ds32_nearest_stage1.yml --launcher pytorch
+
+# Stage II
+python -m torch.distributed.launch --nproc_per_node=8 --master_port=4322 \
+    basicsr/train.py -opt options/CodeFormer_stage2.yml --launcher pytorch
+
+# Stage III
+python -m torch.distributed.launch --nproc_per_node=8 --master_port=4323 \
+    basicsr/train.py -opt options/CodeFormer_stage3.yml --launcher pytorch
+```
+
+See [Training Documentation](docs/train.md) for details.
+
+---
+
+## Project Structure
+
+```
+CodeFormer/
+├── basicsr/                 # Training framework
+│   ├── archs/              # Network architectures
+│   ├── models/             # Training models
+│   └── data/               # Dataset loaders
+├── facelib/                # Face processing utilities
+│   ├── detection/          # Face detectors
+│   ├── parsing/            # Face parsing
+│   └── utils/              # Helpers
+├── inference_*.py          # Inference scripts
+├── scripts/                # Utility scripts
+├── options/                # Training configs
+└── weights/                # Pretrained models
+```
+
+---
+
+## Citation
+
+```bibtex
+@inproceedings{zhou2022codeformer,
+    author = {Zhou, Shangchen and Chan, Kelvin C.K. and Li, Chongyi and Loy, Chen Change},
+    title = {Towards Robust Blind Face Restoration with Codebook Lookup TransFormer},
+    booktitle = {NeurIPS},
+    year = {2022}
+}
+```
+
+---
+
+## License
+
+Licensed under [NTU S-Lab License 1.0](LICENSE).
+
+---
+
+<p align="center">
+  <strong>Original Authors:</strong> <a href="https://shangchenzhou.com/">Shangchen Zhou</a>, <a href="https://ckkelvinchan.github.io/">Kelvin C.K. Chan</a>, <a href="https://li-chongyi.github.io/">Chongyi Li</a>, <a href="https://www.mmlab-ntu.com/person/ccloy/">Chen Change Loy</a>
+  <br>
+  S-Lab, Nanyang Technological University
+</p>
