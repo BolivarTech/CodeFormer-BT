@@ -2,6 +2,7 @@ import os
 import cv2
 import argparse
 import glob
+import time
 import torch
 from torchvision.transforms.functional import normalize
 from basicsr.utils import imwrite, img2tensor, tensor2img
@@ -9,9 +10,22 @@ from basicsr.utils.download_util import load_file_from_url
 from basicsr.utils.misc import get_device, get_device_info, print_device_banner, print_cpu_warning
 from basicsr.utils.registry import ARCH_REGISTRY
 
+
+def format_elapsed_time(seconds: float) -> str:
+    """Format elapsed time as [HHH:MM:SS.ss]. Hours can exceed 99."""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = seconds % 60
+    if hours >= 100:
+        return f"[{hours}:{minutes:02d}:{secs:05.2f}]"
+    return f"[{hours:02d}:{minutes:02d}:{secs:05.2f}]"
+
+
 pretrain_model_url = 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer_inpainting.pth'
 
 if __name__ == '__main__':
+    start_time = time.time()
+
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = get_device()
 
@@ -96,3 +110,6 @@ if __name__ == '__main__':
 
     print(f'\nAll results are saved in {result_root}')
 
+    # Print elapsed time
+    elapsed_time = time.time() - start_time
+    print(f'Elapsed time: {format_elapsed_time(elapsed_time)}')

@@ -2,6 +2,7 @@ import os
 import cv2
 import argparse
 import glob
+import time
 import torch
 from torchvision.transforms.functional import normalize
 from basicsr.utils import imwrite, img2tensor, tensor2img
@@ -11,6 +12,23 @@ from facelib.utils.face_restoration_helper import FaceRestoreHelper
 from facelib.utils.misc import is_gray
 
 from basicsr.utils.registry import ARCH_REGISTRY
+
+
+def format_elapsed_time(seconds: float) -> str:
+    """Format elapsed time as [HHH:MM:SS.ss].
+
+    Args:
+        seconds: Elapsed time in seconds.
+
+    Returns:
+        str: Formatted time string. Hours can exceed 99 for long processes.
+    """
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = seconds % 60
+    if hours >= 100:
+        return f"[{hours}:{minutes:02d}:{secs:05.2f}]"
+    return f"[{hours:02d}:{minutes:02d}:{secs:05.2f}]"
 
 pretrain_model_url = {
     'restoration': 'https://github.com/sczhou/CodeFormer/releases/download/v0.1.0/codeformer.pth',
@@ -83,6 +101,8 @@ def set_realesrgan(scale: int = 2) -> 'RealESRGANer':
     return upsampler
 
 if __name__ == '__main__':
+    start_time = time.time()
+
     # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     device = get_device()
 
@@ -359,3 +379,7 @@ if __name__ == '__main__':
         vidwriter.close()
 
     print(f'\nAll results are saved in {result_root}')
+
+    # Print elapsed time
+    elapsed_time = time.time() - start_time
+    print(f'Elapsed time: {format_elapsed_time(elapsed_time)}')
